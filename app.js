@@ -3,16 +3,13 @@ let thead = document.querySelector("thead");
 let tbody = document.querySelector("tbody");
 let form = document.querySelector("form");
 
-let crudDatas = [
-  { id: 1, name: "John Doe", email: "John@example.com" },
-  { id: 2, name: "Jane Doe", email: "Jane@example.com" },
-  { id: 3, name: "Alice Doe", email: "Alice@example.com" },
-  { id: 4, name: "Bob Doe", email: "Bob@example.com" },
-  { id: 5, name: "Neo Doe", email: "Neo@example.com" },
-  { id: 6, name: "Thomas Doe", email: "Thomas@example.com" },
-];
+let crudDatas = JSON.parse(localStorage.getItem("crudDatas")) || [
+  { id: 1, name: "John Doe", email: "johndoe@mail.com", num: "(171) 555-2222" },
+  { id: 2, name: "Peter Parker", email: "peterparker@mail.com", num: "(313) 555-5735" },
+  { id: 3, name: "Fran Wilson", email: "franwilson@mail.com", num: "(503) 555-9931" }
+]
 
-(function renderTableHead() {
+function renderTableHead() {
   let tr = document.createElement("tr");
   Object.keys(crudDatas[0]).forEach((key) => {
     let th = document.createElement("th");
@@ -25,7 +22,8 @@ let crudDatas = [
   tr.append(thAction);
   
   thead.append(tr);
-})();
+  
+};
 
 function renderTableData(datas) {
   tbody.innerHTML = "";
@@ -34,13 +32,15 @@ function renderTableData(datas) {
     let tdId = document.createElement("td");
     let tdName = document.createElement("td");
     let tdEmail = document.createElement("td");
+    let tdNumber = document.createElement("td");
     let tdAction = document.createElement("td");
 
     tdId.textContent = val.id;
     tdName.textContent = val.name;
     tdEmail.textContent = val.email;
+    tdNumber.textContent = val.num;
 
-    tr.append(tdId, tdName, tdEmail, tdAction);
+    tr.append(tdId, tdName, tdEmail, tdNumber, tdAction);
 
     let delBtn = document.createElement("button");
     let editBtn = document.createElement("button");
@@ -57,6 +57,8 @@ function renderTableData(datas) {
       onEdit(val);
     });
   });
+
+  localStorage.setItem("crudDatas", JSON.stringify(crudDatas));
   
   if (datas.length === 0) {
     tbody.innerHTML = "<tr><td colspan='4'>No data found</td></tr>";
@@ -84,7 +86,6 @@ form.addEventListener("submit", (e) => {
   crudDatas.push(newData);
   renderTableData(crudDatas);
   
-  // Clear form fields after submission
   e.target[0].value = "";
   e.target[1].value = "";
 });
