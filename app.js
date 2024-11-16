@@ -44,8 +44,8 @@ function renderTableData(datas) {
 
     let delBtn = document.createElement("button");
     let editBtn = document.createElement("button");
-    delBtn.textContent = "Delete";
-    editBtn.textContent = "Edit";
+    delBtn.textContent = "🗑️";
+    editBtn.textContent = "🖍️";
     tdAction.append(delBtn, editBtn);
 
     tbody.append(tr);
@@ -71,8 +71,9 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
   let nameText = e.target[0].value;
   let emailText = e.target[1].value;
+  let numText = e.target[2].value;
   
-  if (!nameText || !emailText) {
+  if (!nameText || !emailText || !numText) {
     alert("Please fill in all fields");
     return;
   }
@@ -81,6 +82,7 @@ form.addEventListener("submit", (e) => {
     id: crudDatas.length + 1,
     name: nameText,
     email: emailText,
+    num: numText,
   };
   
   crudDatas.push(newData);
@@ -88,6 +90,7 @@ form.addEventListener("submit", (e) => {
   
   e.target[0].value = "";
   e.target[1].value = "";
+  e.target[2].value = "";
 });
 
 function onDelete(id) {
@@ -98,11 +101,19 @@ function onDelete(id) {
 function onEdit(val) {
   let inputName = prompt("Enter new name:", val.name);
   let inputEmail = prompt("Enter new email:", val.email);
+  let inputNum = prompt("Enter new number:", val.num);
   
   if (inputName && inputEmail) {
     crudDatas = crudDatas.map((item) => 
-      item.id === val.id ? { ...item, name: inputName, email: inputEmail } : item
+      item.id === val.id ? { ...item, name: inputName, email: inputEmail, num: inputNum } : item
     );
     renderTableData(crudDatas);
   }
 }
+
+
+
+document.getElementById('addNewBtn').addEventListener('click', function () {
+  const form = document.getElementById('employeeForm');
+  form.classList.toggle('hidden'); 
+});
