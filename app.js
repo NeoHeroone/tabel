@@ -1,119 +1,85 @@
-let crudTab = document.querySelector(".crudTable");
 let thead = document.querySelector("thead");
 let tbody = document.querySelector("tbody");
 let form = document.querySelector("form");
+let addNewBtn = document.getElementById("addNewBtn");
+let formTitle = document.getElementById("formTitle");
+let submitBtn = document.getElementById("submitBtn");
 
 let crudDatas = JSON.parse(localStorage.getItem("crudDatas")) || [
   { id: 1, name: "John Doe", email: "johndoe@mail.com", num: "(171) 555-2222" },
   { id: 2, name: "Peter Parker", email: "peterparker@mail.com", num: "(313) 555-5735" },
-  { id: 3, name: "Fran Wilson", email: "franwilson@mail.com", num: "(503) 555-9931" }
-]
+  { id: 3, name: "Fran Wilson", email: "franwilson@mail.com", num: "(503) 555-9931" },
+];
 
-function renderTableHead() {
-  let tr = document.createElement("tr");
-  Object.keys(crudDatas[0]).forEach((key) => {
-    let th = document.createElement("th");
-    th.textContent = key.charAt(0).toUpperCase() + key.slice(1);
-    tr.append(th);
-  });
-  
-  let thAction = document.createElement("th");
-  thAction.textContent = "Action";
-  tr.append(thAction);
-  
-  thead.append(tr);
-  
+let editId = null;
+
+thead.innerHTML = `<tr>${Object.keys(crudDatas[0])
+  .map((key) => `<th>${key[0].toUpperCase() + key.slice(1)}</th>`)
+  .join("")}<th>Action</th></tr>`;
+
+const renderTableData = (datas) => {
+  tbody.innerHTML = datas.length
+    ? datas
+        .map(
+          (val) => `
+      <tr>
+        <td>${val.id}</td>
+        <td>${val.name}</td>
+        <td>${val.email}</td>
+        <td>${val.num}</td>
+        <td>
+          <button onclick="onEdit(${val.id})">🖍️</button>
+          <button onclick="onDelete(${val.id})">🗑️</button>
+        </td>
+      </tr>`
+        )
+        .join("")
+    : `<tr><td colspan="5">No data found</td></tr>`;
+  localStorage.setItem("crudDatas", JSON.stringify(datas));
 };
-
-function renderTableData(datas) {
-  tbody.innerHTML = "";
-  datas.forEach((val) => {
-    let tr = document.createElement("tr");
-    let tdId = document.createElement("td");
-    let tdName = document.createElement("td");
-    let tdEmail = document.createElement("td");
-    let tdNumber = document.createElement("td");
-    let tdAction = document.createElement("td");
-
-    tdId.textContent = val.id;
-    tdName.textContent = val.name;
-    tdEmail.textContent = val.email;
-    tdNumber.textContent = val.num;
-
-    tr.append(tdId, tdName, tdEmail, tdNumber, tdAction);
-
-    let delBtn = document.createElement("button");
-    let editBtn = document.createElement("button");
-    delBtn.textContent = "🗑️";
-    editBtn.textContent = "🖍️";
-    tdAction.append(delBtn, editBtn);
-
-    tbody.append(tr);
-
-    delBtn.addEventListener("click", () => {
-      onDelete(val.id);
-    });
-    editBtn.addEventListener("click", () => {
-      onEdit(val);
-    });
-  });
-
-  localStorage.setItem("crudDatas", JSON.stringify(crudDatas));
-  
-  if (datas.length === 0) {
-    tbody.innerHTML = "<tr><td colspan='4'>No data found</td></tr>";
-  }
-}
-
-renderTableData(crudDatas);
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
-  let nameText = e.target[0].value;
-  let emailText = e.target[1].value;
-  let numText = e.target[2].value;
-  
-  if (!nameText || !emailText || !numText) {
-    alert("Please fill in all fields");
-    return;
+  let [nameText, emailText, numText] = [...form.querySelectorAll("input")].map((input) => input.value);
+  if (!nameText || !emailText || !numText) return alert("Please fill in all fields");
+
+  if (editId !== null) {
+    crudDatas = crudDatas.map((data) =>
+      data.id === editId ? { id: editId, name: nameText, email: emailText, num: numText } : data
+    );
+    editId = null;
+    formTitle.textContent = "Add New Data";
+    submitBtn.textContent = "Add New";
+  } else {
+    crudDatas.push({ id: crudDatas.length + 1, name: nameText, email: emailText, num: numText });
   }
-  
-  let newData = {
-    id: crudDatas.length + 1,
-    name: nameText,
-    email: emailText,
-    num: numText,
-  };
-  
-  crudDatas.push(newData);
+  form.reset();
+  form.classList.add("hidden");
   renderTableData(crudDatas);
-  
-  e.target[0].value = "";
-  e.target[1].value = "";
-  e.target[2].value = "";
 });
 
-function onDelete(id) {
+window.onDelete = (id) => {
   crudDatas = crudDatas.filter((val) => val.id !== id);
   renderTableData(crudDatas);
-}
+};
 
-function onEdit(val) {
-  let inputName = prompt("Enter new name:", val.name);
-  let inputEmail = prompt("Enter new email:", val.email);
-  let inputNum = prompt("Enter new number:", val.num);
-  
-  if (inputName && inputEmail) {
-    crudDatas = crudDatas.map((item) => 
-      item.id === val.id ? { ...item, name: inputName, email: inputEmail, num: inputNum } : item
-    );
-    renderTableData(crudDatas);
-  }
-}
+window.onEdit = (id) => {
+  let val = crudDatas.find((data) => data.id === id);
+  form.classList.remove("hidden");
+  formTitle.textContent = "Edit Data";
+  submitBtn.textContent = "Update";
+  form.querySelectorAll("input")[0].value = val.name;
+  form.querySelectorAll("input")[1].value = val.email;
+  form.querySelectorAll("input")[2].value = val.num;
+  editId = id;
+};
 
-
-
-document.getElementById('addNewBtn').addEventListener('click', function () {
-  const form = document.getElementById('employeeForm');
-  form.classList.toggle('hidden'); 
+addNewBtn.addEventListener("click", () => {
+  form.classList.toggle("hidden");
+  if (form.classList.contains("hidden")) form.reset();
+  formTitle.textContent = "Add New Data";
+  submitBtn.textContent = "Add New";
+  editId = null;
 });
+
+renderTableData(crudDatas);
